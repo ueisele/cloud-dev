@@ -1,3 +1,5 @@
+variable "project" {}
+
 variable "region" {
   default = "us-central1"
 }
@@ -16,12 +18,7 @@ variable "network_name" {
 
 variable "machine_type" {
   description = "The type of the instance"
-  default     = "e2-standard-4"
-}
-
-variable "min_cpu_platform" {
-  description = "Specifies a minimum CPU platform for the VM instance. Applicable values are the friendly names of CPU platforms, such as Intel Haswell or Intel Skylake. https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform"
-  default     = "Automatic"
+  default     = "e2-standard-2"
 }
 
 variable "name" {
@@ -91,8 +88,8 @@ variable "service_account_scopes" {
   ]
 }
 
-variable "iap_members" {
-  description = "List of IAM resources to allow using the IAP tunnel."
+variable "members_osadminlogin" {
+  description = "List of IAM resources to allow os admin login."
   type        = list
   default     = []
 }

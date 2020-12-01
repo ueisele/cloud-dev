@@ -1,6 +1,6 @@
-data "google_project" "current" {}
+#data "google_project" "current" {}
 
-data "google_compute_default_service_account" "default" {}
+#data "google_compute_default_service_account" "default" {}
 
 resource "google_compute_network" "default" {
   name                    = var.network_name
@@ -15,17 +15,16 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
-resource "google_service_account" "default" {
-  account_id   = "development"
-  display_name = "Service Account for Cloud Development"
-}
+#resource "google_service_account" "default" {
+#  account_id   = var.name
+#  display_name = "Service Account for ${var.name}"
+#}
 
 resource "google_compute_instance" "default" {
   name                      = var.name
   zone                      = var.zone
-  tags                      = concat(list("${var.name}-ssh", var.name), var.node_tags)
+  tags                      = concat(list("${var.name}-allow-direct-ssh", var.name), var.node_tags)
   machine_type              = var.machine_type
-  min_cpu_platform          = var.min_cpu_platform
   allow_stopping_for_update = true
 
   boot_disk {
@@ -47,14 +46,30 @@ resource "google_compute_instance" "default" {
   }
 
   metadata = merge(
-    map("enable-oslogin", "TRUE", "startup-script", var.startup_script, "tf_depends_id", var.depends_id),
+    map(
+        "enable-oslogin", "TRUE",
+        "block-project-ssh-keys", "TRUE",
+        "startup-script", var.startup_script, 
+        "tf_depends_id", var.depends_id
+    ),
     var.metadata
   )
 
-  service_account {
-    email  = google_service_account.default.email
-    scopes = var.service_account_scopes
-  }
+  #service_account {
+  #  email  = google_service_account.default.email
+  #  scopes = var.service_account_scopes
+  #}
+}
+
+resource "google_compute_instance_iam_binding" "member_binding_osadminlogin" {
+  zone = var.zone
+  instance_name = google_compute_instance.default.name
+  role = "roles/compute.osAdminLogin"
+  members = concat(list("serviceAccount:${google_service_account.ansible_sa.email}"), var.members_osadminlogin)
+}
+
+output "instance_external_ip" {
+  value = google_compute_instance.default.network_interface.0.access_config.0.nat_ip
 }
 
 // NAT gateway
@@ -81,19 +96,16 @@ resource "google_compute_router_nat" "default" {
   }
 }
 
-// IAP
-module "iap_tunneling" {
-  source = "terraform-google-modules/bastion-host/google//modules/iap-tunneling"
-  version = "v2.10.0"
+// SSH Access
+resource "google_compute_firewall" "allow_direct_ssh_to_instances" {
+  name    = "allow-direct-ssh-to-instances"
+  network = google_compute_network.default.name
 
-  project                    = data.google_project.current.name
-  network                    = google_compute_network.default.name
-  service_accounts           = [google_service_account.default.email]
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
 
-  instances = [{
-    name = google_compute_instance.default.name
-    zone = var.zone
-  }]
-
-  members = var.iap_members
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["${var.name}-allow-direct-ssh"]
 }

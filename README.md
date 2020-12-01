@@ -27,7 +27,7 @@ export GOOGLE_PROJECT=$(gcloud config get-value project)
 
 3. Create a terraform.tfvars file with required variables
 ```
-iap_members = ["user:me@example.com"]
+members_osadminlogin = ["user:me@example.com"]
 ```
 
 ## Configure remote backend
@@ -65,6 +65,20 @@ terraform apply
 ```
 gcloud compute ssh cloud-dev --tunnel-through-iap
 ```
+
+## OS Login 
+
+https://cloud.google.com/compute/docs/instances/managing-instance-access?authuser=1
+
+https://cloud.google.com/compute/docs/tutorials/service-account-ssh?authuser=1
+
+https://cloud.google.com/iam/docs/impersonating-service-accounts?authuser=1
+
+https://alex.dzyoba.com/blog/gcp-ansible-service-account/
+
+## Ansible Setup
+
+https://alex.dzyoba.com/blog/gcp-ansible-service-account/
 
 ## VS Code Setup
 
