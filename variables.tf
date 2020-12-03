@@ -16,6 +16,10 @@ variable "network_name" {
   default = "cloud-dev"
 }
 
+variable "public_dns_zone" {
+  default = ""
+}
+
 variable "machine_type" {
   description = "The type of the instance"
   default     = "e2-standard-2"

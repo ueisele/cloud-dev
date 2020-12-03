@@ -61,20 +61,32 @@ terraform apply
 
 ## Testing
 
-1. Establish ssh tunnel between VM and laptop.
+Establish ssh tunnel between VM and laptop
+
+with user
 ```
-gcloud compute ssh cloud-dev --tunnel-through-iap
+gcloud compute ssh cloud-dev
+```
+
+or via service account
+```
+ssh -i output/ssh/ansible_sa_private_key.pem sa_123456789@1.2.3.4
 ```
 
 ## OS Login 
 
-https://cloud.google.com/compute/docs/instances/managing-instance-access?authuser=1
+https://cloud.google.com/compute/docs/instances/managing-instance-access
 
-https://cloud.google.com/compute/docs/tutorials/service-account-ssh?authuser=1
+https://cloud.google.com/compute/docs/tutorials/service-account-ssh
 
-https://cloud.google.com/iam/docs/impersonating-service-accounts?authuser=1
+https://cloud.google.com/iam/docs/impersonating-service-accounts
 
-https://alex.dzyoba.com/blog/gcp-ansible-service-account/
+https://alex.dzyoba.com/blog/gcp-ansible-service-account
+
+
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account_iam
+
+https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/service_account_access_token
 
 ## Ansible Setup
 

@@ -1,6 +1,4 @@
-#data "google_project" "current" {}
-
-#data "google_compute_default_service_account" "default" {}
+// Network
 
 resource "google_compute_network" "default" {
   name                    = var.network_name
@@ -15,10 +13,7 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
-#resource "google_service_account" "default" {
-#  account_id   = var.name
-#  display_name = "Service Account for ${var.name}"
-#}
+// Instance
 
 resource "google_compute_instance" "default" {
   name                      = var.name
@@ -55,11 +50,9 @@ resource "google_compute_instance" "default" {
     var.metadata
   )
 
-  #service_account {
-  #  email  = google_service_account.default.email
-  #  scopes = var.service_account_scopes
-  #}
 }
+
+// OS Login IAM
 
 resource "google_compute_instance_iam_binding" "member_binding_osadminlogin" {
   zone = var.zone
@@ -68,11 +61,28 @@ resource "google_compute_instance_iam_binding" "member_binding_osadminlogin" {
   members = concat(list("serviceAccount:${google_service_account.ansible_sa.email}"), var.members_osadminlogin)
 }
 
-output "instance_external_ip" {
-  value = google_compute_instance.default.network_interface.0.access_config.0.nat_ip
+// DNS
+
+data "google_dns_managed_zone" "public_dns_zone" {
+  count = var.public_dns_zone != "" ? 1 : 0
+  
+  name  = var.public_dns_zone
+}
+
+resource "google_dns_record_set" "public_instance_dns_a_record" {
+  count = length(data.google_dns_managed_zone.public_dns_zone) > 0 ? 1 : 0
+
+  name = "${google_compute_instance.default.name}.${google_compute_network.default.name}.${data.google_dns_managed_zone.public_dns_zone[0].dns_name}"
+  type = "A"
+  ttl  = 300
+
+  managed_zone = data.google_dns_managed_zone.public_dns_zone[0].name
+
+  rrdatas = [google_compute_instance.default.network_interface.0.access_config.0.nat_ip]
 }
 
 // NAT gateway
+
 resource "google_compute_router" "default" {
   name    = "${var.name}-router"
   region  = var.region
@@ -96,7 +106,8 @@ resource "google_compute_router_nat" "default" {
   }
 }
 
-// SSH Access
+// SSH Access Firewall Rule
+
 resource "google_compute_firewall" "allow_direct_ssh_to_instances" {
   name    = "allow-direct-ssh-to-instances"
   network = google_compute_network.default.name
@@ -108,4 +119,18 @@ resource "google_compute_firewall" "allow_direct_ssh_to_instances" {
 
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["${var.name}-allow-direct-ssh"]
+}
+
+// Output
+
+output "instance_external_ip" {
+  value = google_compute_instance.default.network_interface.0.access_config.0.nat_ip
+}
+
+output "public_instance_fqdn" {
+  value = length(data.google_dns_managed_zone.public_dns_zone) > 0 ? google_dns_record_set.public_instance_dns_a_record[0].name : ""
+}
+
+output "ssh_command_ansible_sa" {
+  value = "ssh -i ${local_file.ansibe_sa_ssh_private_key.filename} sa_${google_service_account.ansible_sa.unique_id}@${length(data.google_dns_managed_zone.public_dns_zone) > 0 ? google_dns_record_set.public_instance_dns_a_record[0].name : google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
 }
