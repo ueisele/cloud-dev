@@ -1,0 +1,25 @@
+---
+- name: Ensure important tools are installed
+  hosts: all
+  gather_facts: true
+  tasks:
+    - include_tasks: tasks/tools-debian.yml
+      when: ansible_os_family == 'Debian'
+
+- name: Ensure dotfiles are installed
+  hosts: dev
+  gather_facts: true
+  tasks:
+    - include_tasks: tasks/dotfiles.yml
+      vars:
+        dotfiles_repo: https://github.com/ueisele/dotfiles.git
+        dotfiles_user: admin_gcp_uweeisele_dev
+
+- name: Ensure Docker is installed
+  hosts: docker
+  gather_facts: true
+  tasks:
+    - import_role:
+        name: geerlingguy.docker
+      vars:
+        docker_compose_version: "1.27.4"

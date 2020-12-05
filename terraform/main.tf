@@ -132,5 +132,5 @@ output "public_instance_fqdn" {
 }
 
 output "ssh_command_ansible_sa" {
-  value = "ssh -i ${local_file.ansibe_sa_ssh_private_key.filename} sa_${google_service_account.ansible_sa.unique_id}@${length(data.google_dns_managed_zone.public_dns_zone) > 0 ? google_dns_record_set.public_instance_dns_a_record[0].name : google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
+  value = "ssh -i ${abspath(local_file.ansibe_sa_ssh_private_key.filename)} sa_${google_service_account.ansible_sa.unique_id}@${length(data.google_dns_managed_zone.public_dns_zone) > 0 ? google_dns_record_set.public_instance_dns_a_record[0].name : google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
 }

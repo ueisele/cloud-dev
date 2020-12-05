@@ -1,0 +1,14 @@
+---
+- name: Dotfiles repo checkout
+  become: yes
+  become_user: "{{ dotfiles_user }}"  
+  git:
+    repo: "{{ dotfiles_repo }}"
+    dest: ~/.dotfiles
+    version: master
+    update: yes
+
+- name: Install dotfiles
+  become: yes
+  become_user: "{{ dotfiles_user }}"  
+  command: ~/.dotfiles/install.sh

@@ -4,18 +4,6 @@ resource "google_service_account" "ansible_sa" {
   display_name = "Service Account for ${var.name} Ansible"
 }
 
-output "ansible_sa_email" {
-  value = google_service_account.ansible_sa.email
-}
-
-output "ansible_sa_unique_id" {
-  value = google_service_account.ansible_sa.unique_id
-}
-
-output "ansible_sa_username" {
-  value = "sa_${google_service_account.ansible_sa.unique_id}"
-}
-
 // Account Key
 
 resource "google_service_account_key" "ansible_sa_account_key" {
@@ -64,4 +52,26 @@ resource "local_file" "ansibe_sa_ssh_public_key" {
     content  = tls_private_key.ansible_sa_ssh_private_key.public_key_openssh
     filename = "output/ssh/ansible_sa_public_key.pub"
     file_permission = "0444"
+}
+
+// Output
+
+output "ansible_sa_email" {
+  value = google_service_account.ansible_sa.email
+}
+
+output "ansible_sa_unique_id" {
+  value = google_service_account.ansible_sa.unique_id
+}
+
+output "ansible_sa_username" {
+  value = "sa_${google_service_account.ansible_sa.unique_id}"
+}
+
+output "ansible_sa_private_key_file" {
+  value = abspath(local_file.ansibe_sa_ssh_private_key.filename)
+}
+
+output "ansible_sa_public_key_file" {
+  value = abspath(local_file.ansibe_sa_ssh_public_key.filename)
 }
