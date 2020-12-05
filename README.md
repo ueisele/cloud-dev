@@ -83,6 +83,7 @@ https://cloud.google.com/iam/docs/impersonating-service-accounts
 
 https://alex.dzyoba.com/blog/gcp-ansible-service-account
 
+https://cloud.google.com/compute/docs/oslogin/manage-oslogin-in-an-org
 
 https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account_iam
 
